@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use feature qw{ say };
 
-sub new      { bless { src => [], ip => 0 }, shift }
+sub new      { bless { src => [], ip => 0, relbase => 0 }, shift }
 sub load     { $_[0]{src} = [ @_[1 .. $#_] ]; $_[0]->restart }
 sub ip       { $_[0]{ip} }
 sub jump     { $_[0]{ip} = $_[1] }
@@ -20,10 +20,12 @@ sub finished { $_[0]{finished} }
 sub pause    { $_[0]{pause} = $_[1] }
 sub debug    { $_[0]{debug} = $_[1] if @_ > 1; $_[0]{debug} }
 sub flush    { $_[0]{$_} = [] for qw( input output ) }
+sub relbase  { $_[0]{relbase} }
 
 my %mode = (
     0 => sub { $_[0]{src}[ $_[0]->ip + $_[1] ] },
     1 => sub { $_[0]->ip + $_[1] },
+    2 => sub { $_[0]{src}[ $_[0]->ip + $_[1] ] + $_[0]{relbase} });
 
 my %instruction = (
     1 => { argc => 3,
@@ -100,6 +102,14 @@ my %instruction = (
                    = ($self->{src}[ $mode{ $modes[0] }->($self, 1) ]
                       == $self->{src}[ $mode{ $modes[1] }->($self, 2) ])
                    ? 1 : 0;
+               return ""
+           } },
+    9 => { argc => 1,
+           name => 'rel',
+           action => sub {
+               my ($self, @modes) = @_;
+               $self->{relbase}
+                   += $self->{src}[ $mode{ $modes[0] }->($self, 1) ];
                return ""
            } },
 );
