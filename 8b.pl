@@ -3,7 +3,8 @@ use warnings;
 use strict;
 use feature qw{ say };
 
-my $SIZE = 25 * 6;
+my $WIDTH = 25;
+my $SIZE = $WIDTH * 6;
 
 open my $in, '<', shift or die $!;
 
@@ -17,4 +18,4 @@ while ($SIZE == read $in, my $layer, $SIZE) {
         substr $result, $i, 1, $back;
     }
 }
-say $result =~ s/.{25}\K/\n/gr =~ tr/01/ #/r;
+say $result =~ s/.{$WIDTH}\K/\n/gr =~ tr/01/ #/r;
