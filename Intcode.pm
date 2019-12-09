@@ -22,26 +22,26 @@ sub debug    { $_[0]{debug} = $_[1] if @_ > 1; $_[0]{debug} }
 sub flush    { $_[0]{$_} = [] for qw( input output ) }
 
 my %mode = (
-    0 => sub { $_[0]{src}[ $_[1] ] },
-    1 => sub { $_[1] });
+    0 => sub { $_[0]{src}[ $_[0]->ip + $_[1] ] },
+    1 => sub { $_[0]->ip + $_[1] },
 
 my %instruction = (
     1 => { argc => 3,
            name => 'add',
            action => sub {
                my ($self, @modes) = @_;
-               $self->{src}[ $mode{ $modes[2] }->($self, $self->ip + 3) ]
-                   = $self->{src}[ $mode{ $modes[0] }->($self, $self->ip + 1) ]
-                   + $self->{src}[ $mode{ $modes[1] }->($self, $self->ip + 2) ];
+               $self->{src}[ $mode{ $modes[2] }->($self, 3) ]
+                   = $self->{src}[ $mode{ $modes[0] }->($self, 1) ]
+                   + $self->{src}[ $mode{ $modes[1] }->($self, 2) ];
                return ""
            } },
     2 => { argc => 3,
            name => 'mul',
            action => sub {
                my ($self, @modes) = @_;
-               $self->{src}[ $mode{ $modes[2] }->($self, $self->ip + 3) ]
-                   = $self->{src}[ $mode{ $modes[0] }->($self, $self->ip + 1) ]
-                   * $self->{src}[ $mode{ $modes[1] }->($self, $self->ip + 2) ];
+               $self->{src}[ $mode{ $modes[2] }->($self, 3) ]
+                   = $self->{src}[ $mode{ $modes[0] }->($self, 1) ]
+                   * $self->{src}[ $mode{ $modes[1] }->($self, 2) ];
                return ""
            } },
     3 => { argc => 1,
@@ -49,7 +49,7 @@ my %instruction = (
            action => sub {
                my ($self, @modes) = @_;
                my $value
-                   = $self->{src}[ $mode{ $modes[0] }->($self, $self->ip + 1) ]
+                   = $self->{src}[ $mode{ $modes[0] }->($self, 1) ]
                    = $self->read;
                say "< $value" if $self->debug;
                return ""
@@ -59,15 +59,15 @@ my %instruction = (
            action => sub {
                my ($self, @modes) = @_;
                $self->print(
-                   $self->{src}[ $mode{ $modes[0] }->($self, $self->ip + 1) ] );
+                   $self->{src}[ $mode{ $modes[0] }->($self, 1) ] );
                return $self->{pause} ? 'pause' : ""
            } },
     5 => { argc => 2,
            name => 'jtrue',
            action => sub {
                my ($self, @modes) = @_;
-               if ($self->{src}[ $mode{ $modes[0] }->($self, $self->ip + 1) ]) {
-                   $self->jump($self->{src}[ $mode{ $modes[1] }->($self, $self->ip + 2) ]);
+               if ($self->{src}[ $mode{ $modes[0] }->($self, 1) ]) {
+                   $self->jump($self->{src}[ $mode{ $modes[1] }->($self, 2) ]);
                    return 'jump'
                }
                return ""
@@ -76,8 +76,8 @@ my %instruction = (
            name => 'jfalse',
            action => sub {
                my ($self, @modes) = @_;
-               unless ($self->{src}[ $mode{ $modes[0] }->($self, $self->ip + 1) ]) {
-                   $self->jump($self->{src}[ $mode{ $modes[1] }->($self, $self->ip + 2) ]);
+               unless ($self->{src}[ $mode{ $modes[0] }->($self, 1) ]) {
+                   $self->jump($self->{src}[ $mode{ $modes[1] }->($self, 2) ]);
                    return 'jump'
                }
                return ""
@@ -86,9 +86,9 @@ my %instruction = (
            name => 'jlt',
            action => sub {
                my ($self, @modes) = @_;
-               $self->{src}[ $mode{ $modes[2] }->($self, $self->ip + 3) ]
-                   = ($self->{src}[ $mode{ $modes[0] }->($self, $self->ip + 1) ]
-                      < $self->{src}[ $mode{ $modes[1] }->($self, $self->ip + 2) ])
+               $self->{src}[ $mode{ $modes[2] }->($self, 3) ]
+                   = ($self->{src}[ $mode{ $modes[0] }->($self, 1) ]
+                      < $self->{src}[ $mode{ $modes[1] }->($self, 2) ])
                    ? 1 : 0;
                return ""
            } },
@@ -96,9 +96,9 @@ my %instruction = (
            name => 'jeq',
            action => sub {
                my ($self, @modes) = @_;
-               $self->{src}[ $mode{ $modes[2] }->($self, $self->ip + 3) ]
-                   = ($self->{src}[ $mode{ $modes[0] }->($self, $self->ip + 1) ]
-                      == $self->{src}[ $mode{ $modes[1] }->($self, $self->ip + 2) ])
+               $self->{src}[ $mode{ $modes[2] }->($self, 3) ]
+                   = ($self->{src}[ $mode{ $modes[0] }->($self, 1) ]
+                      == $self->{src}[ $mode{ $modes[1] }->($self, 2) ])
                    ? 1 : 0;
                return ""
            } },
@@ -112,7 +112,7 @@ sub run {
         my $action = $instruction{$inst}{action}
             or die "Invalid instruction $inst at " . $_[0]->ip . ".\n";
         #warn "@{ $_[0]{src} }\n";
-        say join ' ', $instruction{$inst}{name}, @{$_[0]{src} }[
+        say join ' ', $instruction{$inst}{name}, "[@modes]", @{$_[0]{src} }[
             $_[0]->{ip} + 1
             .. $_[0]->{ip} + $instruction{$inst}{argc}
         ] if $_[0]->debug;
