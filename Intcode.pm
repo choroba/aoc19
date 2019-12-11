@@ -33,8 +33,8 @@ my %instruction = (
            action => sub {
                my ($self, @modes) = @_;
                $self->{src}[ $mode{ $modes[2] }->($self, 3) ]
-                   = $self->{src}[ $mode{ $modes[0] }->($self, 1) ]
-                   + $self->{src}[ $mode{ $modes[1] }->($self, 2) ];
+                   = ($self->{src}[ $mode{ $modes[0] }->($self, 1) ] //= 0)
+                   + ($self->{src}[ $mode{ $modes[1] }->($self, 2) ] //= 0);
                return ""
            } },
     2 => { argc => 3,
@@ -42,8 +42,8 @@ my %instruction = (
            action => sub {
                my ($self, @modes) = @_;
                $self->{src}[ $mode{ $modes[2] }->($self, 3) ]
-                   = $self->{src}[ $mode{ $modes[0] }->($self, 1) ]
-                   * $self->{src}[ $mode{ $modes[1] }->($self, 2) ];
+                   = ($self->{src}[ $mode{ $modes[0] }->($self, 1) ] //= 0)
+                   * ($self->{src}[ $mode{ $modes[1] }->($self, 2) ] //= 0);
                return ""
            } },
     3 => { argc => 1,
