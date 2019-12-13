@@ -9,6 +9,7 @@ sub load     { $_[0]{src} = [ @_[1 .. $#_] ]; $_[0]->restart }
 sub ip       { $_[0]{ip} }
 sub jump     { $_[0]{ip} = $_[1] }
 sub restart  { $_[0]{ip} = 0 }
+sub set      { $_[0]{src}[ $_[1] ] = $_[2] }
 sub current  { $_[0]{src}[ $_[0]{ip} ] }
 sub result   { $_[0]{src}[0] }
 sub forward  { $_[0]{ip} += $_[1] + 1 }
