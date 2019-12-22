@@ -7,26 +7,23 @@ use List::Util qw{ first };
 use ARGV::OrDATA;
 
 use constant MAX => 10006;
+my $card = 2019;
 
-my @cards = (0 .. MAX);
 while (<>) {
     chomp;
     if (/^deal i/) {
-        @cards = reverse @cards;
+        $card = MAX - $card;
 
     } elsif (/^cut ([-\d]+)/) {
-        unshift @cards, splice @cards, $1;
+        $card -= $1;
 
     } elsif (my ($inc) = /(\d+)/) {  # increment
-        my @new;
-        for my $i (0 .. MAX) {
-            $new[ ($i * $inc) % (MAX + 1) ] = $cards[$i];
-        }
-        @cards = @new;
+        $card *= $inc;
+        $card %= (MAX + 1);
     }
 }
 
-say first { $cards[$_] == 2019 } 0 .. $#cards;
+say $card;
 
 
 __DATA__
