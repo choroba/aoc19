@@ -14,7 +14,8 @@ sub current    { $_[0]{src}[ $_[0]{ip} ] }
 sub result     { $_[0]{src}[0] }
 sub forward    { $_[0]{ip} += $_[1] + 1 }
 sub input      { push @{ $_[0]{input} }, @_[1 .. $#_] }
-sub read       { shift @{ $_[0]{input} } // $_[0]{default_in} }
+sub read       { shift @{ $_[0]{input} }
+                     // do { $_[0]{idle} = 1; $_[0]{default_in} } }
 sub print      { push @{ $_[0]{output} }, @_[1 .. $#_] }
 sub output     { $_[0]{output} }
 sub finished   { $_[0]{finished} }
@@ -24,6 +25,7 @@ sub flush      { $_[0]{$_} = [] for qw( input output ) }
 sub shorten    { splice @{ $_[0]{output} }, 0, $_[1] }
 sub relbase    { $_[0]{relbase} }
 sub default_in { $_[0]{default_in} = $_[1] }
+sub idle       { $_[0]{idle} }
 
 my %mode = (
     0 => sub { $_[0]{src}[ $_[0]->ip + $_[1] ] },
@@ -129,6 +131,7 @@ sub run {
             $_[0]->{ip} + 1
             .. $_[0]->{ip} + $instruction{$inst}{argc}
         ] if $_[0]->debug;
+        $_[0]->{idle} = 0;
         my $result = $action->($_[0], @modes);
         $_[0]->forward($instruction{$inst}{argc}) unless $result eq 'jump';
         return if $result eq 'pause';
