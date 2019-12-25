@@ -1,0 +1,10 @@
+[Pressure sensitive floor]                             [Engineering (tambourine)]
+^                                                      ^
+|                                                      |
+[Security Checkpoint] <- [Navigation (dark matter)] <- [Storage] <- [Sick Bay (klein bottle)] <- [Hull Breach] -------> [Holodeck]                                                  [Science Lab (!photons)]
+                                                                    |                                        |                                                                      ^
+                                                                    v                                        +----------v                                                           |
+                                               [Hallway (!lava)] <- [Hot Chocolate Fountain] -> [Gift Wrap (monolith)]  [Stables (cake)] -> [Observatory (!giant electromagnet)] -> [Passages (!infinite loop)]
+                                                                                                |                       |
+                                                                                                v                       v
+                   [Warp Drive (astrolabe)] <- [Corridor (!escape pod)] <- [Crew Quarters (fuel)]   [Arcade (mutex)] <- [Kitchen]

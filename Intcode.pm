@@ -14,6 +14,7 @@ sub current    { $_[0]{src}[ $_[0]{ip} ] }
 sub result     { $_[0]{src}[0] }
 sub forward    { $_[0]{ip} += $_[1] + 1 }
 sub input      { push @{ $_[0]{input} }, @_[1 .. $#_] }
+sub input_str  { $_[0]->input(map ord, split //, $_[1]) }
 sub read       { shift @{ $_[0]{input} }
                      // do { $_[0]{idle} = 1; $_[0]{default_in} } }
 sub print      { push @{ $_[0]{output} }, @_[1 .. $#_] }
@@ -55,11 +56,15 @@ my %instruction = (
            name => 'read',
            action => sub {
                my ($self, @modes) = @_;
+               return 'pause'
+                   if 3 == $self->{pause} && ! @{ $self->{input} // [] };
+
                my $value
                    = $self->{src}[ $mode{ $modes[0] }->($self, 1) ]
                    = $self->read;
                say "< $value" if $self->debug;
-               return $self->{pause} > 1 ? 'pause' : ""
+               return ($self->{pause} > 1 && $self->{pause} != 3)
+                   ? 'pause' : ""
            } },
     4 => { argc => 1,
            name => 'out',
@@ -67,7 +72,7 @@ my %instruction = (
                my ($self, @modes) = @_;
                $self->print(
                    $self->{src}[ $mode{ $modes[0] }->($self, 1) ] );
-               return $self->{pause} ? 'pause' : ""
+               return $self->{pause} > 0 && $self->{pause} != 3 ? 'pause' : ""
            } },
     5 => { argc => 2,
            name => 'jtrue',
@@ -133,7 +138,8 @@ sub run {
         ] if $_[0]->debug;
         $_[0]->{idle} = 0;
         my $result = $action->($_[0], @modes);
-        $_[0]->forward($instruction{$inst}{argc}) unless $result eq 'jump';
+        $_[0]->forward($instruction{$inst}{argc})
+            unless $result eq 'jump' || $result eq 'pause' && 3 == $_[0]{pause};
         return if $result eq 'pause';
     }
     $_[0]{finished} = 1;
