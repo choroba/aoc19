@@ -57,14 +57,15 @@ my %instruction = (
            action => sub {
                my ($self, @modes) = @_;
                return 'pause'
-                   if 3 == $self->{pause} && ! @{ $self->{input} // [] };
+                   if 3 == ($self->{pause} // 0) && ! @{ $self->{input} // [] };
 
                my $value
                    = $self->{src}[ $mode{ $modes[0] }->($self, 1) ]
                    = $self->read;
                say "< $value" if $self->debug;
-               return ($self->{pause} > 1 && $self->{pause} != 3)
-                   ? 'pause' : ""
+               return exists $self->{pause}
+                   && $self->{pause} > 1
+                   && $self->{pause} != 3 ? 'pause' : ""
            } },
     4 => { argc => 1,
            name => 'out',
@@ -72,7 +73,9 @@ my %instruction = (
                my ($self, @modes) = @_;
                $self->print(
                    $self->{src}[ $mode{ $modes[0] }->($self, 1) ] );
-               return $self->{pause} > 0 && $self->{pause} != 3 ? 'pause' : ""
+               return exists $self->{pause}
+                   && $self->{pause} > 0
+                   && $self->{pause} != 3 ? 'pause' : ""
            } },
     5 => { argc => 2,
            name => 'jtrue',
